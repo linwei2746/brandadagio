@@ -8,7 +8,6 @@ import Features from "@/components/Features";
 import Appraiser from "@/components/Appraiser";
 import Stores from "@/components/Stores";
 import FAQ from "@/components/FAQ";
-import Journal from "@/components/Journal";
 
 export default function Home() {
   return (
@@ -23,7 +22,6 @@ export default function Home() {
         <Appraiser />
         <Stores />
         <FAQ />
-        <Journal />
       </main>
       <Footer />
     </>
