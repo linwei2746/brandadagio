@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ivory font-sans text-ink antialiased;
+    font-weight: 300;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    @apply bg-gold/15;
+  }
+}
+
+@layer components {
+  .container-luxe {
+    @apply mx-auto w-full max-w-content px-6 md:px-10;
+  }
+  .container-narrow {
+    @apply mx-auto w-full max-w-2xl px-6;
+  }
+
+  /* 英字のセクションラベル（Garamond・ゴールド・広い字間） */
+  .label-en {
+    @apply block text-[13px] uppercase tracking-luxe text-gold;
+    font-family: var(--font-eb), serif;
+  }
+
+  /* 日本語の見出し（明朝・細め・広い字間） */
+  .heading-jp {
+    @apply text-[1.6rem] font-normal leading-[1.8] tracking-[0.3em] text-stone md:text-[2rem];
+    font-family: var(--font-noto-serif-jp), serif;
+  }
+
+  /* 本文 */
+  .body-jp {
+    @apply text-[13px] font-light leading-[2.4] tracking-[0.08em] text-ink/75 md:text-sm;
+  }
+
+  /* 大きく薄いウォーターマーク（Garamond） */
+  .watermark {
+    @apply pointer-events-none absolute select-none font-normal leading-none;
+    font-family: var(--font-eb), serif;
+    color: theme("colors.blush");
+    opacity: 0.1;
+  }
+
+  /* View More … 横線つきのテキストリンク */
+  .btn-view {
+    @apply inline-flex items-center gap-5 text-[19px] tracking-[0.16em] text-gold
+      transition-opacity duration-300 hover:opacity-70
+      before:h-px before:w-14 before:bg-gold before:transition-all before:duration-300
+      before:content-[''] hover:before:w-20;
+    font-family: var(--font-eb), serif;
+  }
+
+  /* 矩形の細い罫線ボタン（角丸なし） */
+  .btn-line {
+    @apply inline-flex items-center justify-center border border-gold px-10 py-4
+      text-[13px] uppercase tracking-[0.24em] text-gold transition-colors duration-300
+      hover:bg-gold hover:text-ivory;
+    font-family: var(--font-eb), serif;
+  }
+  .btn-solid {
+    @apply inline-flex items-center justify-center bg-gold px-10 py-4 text-[13px]
+      uppercase tracking-[0.24em] text-ivory transition-colors duration-300 hover:bg-ink;
+    font-family: var(--font-eb), serif;
+  }
+
+  /* 価格（Garamond・¥ 000 〜） */
+  .price {
+    @apply text-[15px] tracking-[0.1em] text-ink;
+    font-family: var(--font-eb), serif;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

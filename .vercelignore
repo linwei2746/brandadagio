@@ -1,0 +1,7 @@
+# Vercel へアップロードしない（ビルドはクラウド側で実行）
+node_modules
+.next
+.git
+.env*.local
+document
+supabase
