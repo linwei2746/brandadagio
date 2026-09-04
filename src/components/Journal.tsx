@@ -11,10 +11,10 @@ export default async function Journal({ posts }: { posts?: PostItem[] }) {
       <div className="container-luxe">
         <Reveal className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <span className="label-en">Journal</span>
-            <h2 className="heading-jp mt-5">ジャーナル</h2>
+            <span className="label-en">Blog & Journal</span>
+            <h2 className="heading-jp mt-5">ブログ（記事）</h2>
           </div>
-          <Link href="/journal" className="btn-view">
+          <Link href="/blog" className="btn-view">
             View More
           </Link>
         </Reveal>
@@ -22,7 +22,7 @@ export default async function Journal({ posts }: { posts?: PostItem[] }) {
         <div className="mt-14 grid grid-cols-1 gap-10 md:grid-cols-3">
           {items.map((post, i) => (
             <Reveal key={post.id || post.title} delay={i * 90}>
-              <Link href={`/journal/${post.slug || post.id}`} className="group block">
+              <Link href={`/blog/${post.slug || post.id}`} className="group block">
                 <div className="relative aspect-[3/2] overflow-hidden bg-line">
                   <Image
                     src={post.coverImage || "/img/1788083506887.png"}

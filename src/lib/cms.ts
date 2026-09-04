@@ -242,24 +242,37 @@ export async function getPosts(limit = 10): Promise<PostItem[]> {
   }));
 }
 
-export async function getPostBySlug(slug: string): Promise<PostItem | null> {
+export async function getPostBySlug(slugOrId: string): Promise<PostItem | null> {
   try {
     const payload = await getPayload({ config });
+    // 先按 slug 查找
     const { docs } = await payload.find({
       collection: "posts",
-      where: { slug: { equals: slug } },
+      where: { slug: { equals: slugOrId } },
       limit: 1,
       depth: 1,
     });
     if (docs && docs[0]) {
       return normalizePayloadPost(docs[0]);
     }
+
+    // 若无匹配再按 ID 查找
+    try {
+      const byId = await payload.findByID({
+        collection: "posts",
+        id: slugOrId,
+        depth: 1,
+      });
+      if (byId) return normalizePayloadPost(byId);
+    } catch {
+      // ID 查找错误忽略
+    }
   } catch (err) {
     console.warn("[cms] getPostBySlug using fallback:", err);
   }
 
   const allPosts = await getPosts(50);
-  return allPosts.find((p) => p.slug === slug || p.id === slug) || allPosts[0] || null;
+  return allPosts.find((p) => p.slug === slugOrId || p.id === slugOrId) || allPosts[0] || null;
 }
 
 export async function getOrderById(orderId: string) {

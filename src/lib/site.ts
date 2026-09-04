@@ -13,6 +13,7 @@ export const siteConfig = {
     { label: "ショップ", href: "/shop" },
     { label: "買取", href: "/sell" },
     { label: "委託販売", href: "/consignment" },
+    { label: "ブログ", href: "/blog" },
     { label: "メンバーシップ", href: "/membership" },
     { label: "店舗", href: "/stores" },
   ],

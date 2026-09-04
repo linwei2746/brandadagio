@@ -1,12 +1,34 @@
 import type { CollectionConfig } from "payload";
 
-// ジャーナル（ブログ）。後台で無コード投稿。
+// ブログ（記事）。後台で無コード投稿。
 export const Posts: CollectionConfig = {
   slug: "posts",
   labels: { singular: "記事", plural: "記事" },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "status", "publishedAt"],
+  },
+  hooks: {
+    beforeValidate: [
+      ({ data }) => {
+        if (data) {
+          // スラッグ未入力時はタイトルやタイムスタンプから自動補完
+          if (!data.slug && data.title) {
+            const sanitized = String(data.title)
+              .trim()
+              .toLowerCase()
+              .replace(/[\s\W-]+/g, "-")
+              .replace(/^-+|-+$/g, "");
+            data.slug = sanitized || `article-${Date.now()}`;
+          }
+          // 公開ステータスで公開日が空の場合は本日日付を自動設定
+          if (data.status === "published" && !data.publishedAt) {
+            data.publishedAt = new Date().toISOString().split("T")[0];
+          }
+        }
+        return data;
+      },
+    ],
   },
   access: {
     // 公開済みのみ一般公開。下書きはログイン時のみ。
@@ -23,8 +45,6 @@ export const Posts: CollectionConfig = {
     {
       name: "slug",
       type: "text",
-      required: true,
-      unique: true,
       label: "スラッグ (URL)",
       admin: { position: "sidebar" },
     },
