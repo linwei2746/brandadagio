@@ -16,7 +16,7 @@ const columns = [
     links: [
       { label: "買取", href: "/sell" },
       { label: "委託販売", href: "/consignment" },
-      { label: "ブログ（記事）", href: "/blog" },
+      { label: "ブログ", href: "/blog" },
       { label: "鑑定・査定", href: "/appraisal" },
       { label: "メンバーシップ", href: "/membership" },
     ],

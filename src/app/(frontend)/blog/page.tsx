@@ -18,7 +18,7 @@ export default async function BlogPage() {
           {/* 页面标题 */}
           <div className="text-center">
             <span className="label-en">Blog & Articles</span>
-            <h1 className="heading-jp mt-4">ブログ（記事）一覧</h1>
+            <h1 className="heading-jp mt-4">ブログ一覧</h1>
             <p className="mt-4 text-xs tracking-wider text-ink/60 md:text-sm">
               専門鑑定士によるエルメスの真贋・相場動向・コレクション管理の最新コラムをお届けします。
             </p>

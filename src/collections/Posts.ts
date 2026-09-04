@@ -3,7 +3,7 @@ import type { CollectionConfig } from "payload";
 // ブログ（記事）。後台で無コード投稿。
 export const Posts: CollectionConfig = {
   slug: "posts",
-  labels: { singular: "記事", plural: "記事" },
+  labels: { singular: "ブログ", plural: "ブログ" },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "status", "publishedAt"],

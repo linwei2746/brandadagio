@@ -12,7 +12,7 @@ export default async function Journal({ posts }: { posts?: PostItem[] }) {
         <Reveal className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div>
             <span className="label-en">Blog & Journal</span>
-            <h2 className="heading-jp mt-5">ブログ（記事）</h2>
+            <h2 className="heading-jp mt-5">ブログ</h2>
           </div>
           <Link href="/blog" className="btn-view">
             View More

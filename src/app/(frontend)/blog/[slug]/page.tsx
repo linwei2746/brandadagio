@@ -37,7 +37,7 @@ export default async function BlogDetailPage({
             </Link>
             <span>/</span>
             <Link href="/blog" className="hover:text-ink">
-              ブログ（記事）
+              ブログ
             </Link>
             <span>/</span>
             <span className="text-ink/80 truncate max-w-[200px] md:max-w-none">
@@ -92,7 +92,7 @@ export default async function BlogDetailPage({
               </p>
             </div>
             <Link href="/blog" className="btn-outline shrink-0 text-xs">
-              ← 記事一覧に戻る
+              ← ブログ一覧に戻る
             </Link>
           </div>
 
@@ -100,7 +100,7 @@ export default async function BlogDetailPage({
           {otherPosts.length > 0 && (
             <div className="mt-20">
               <h3 className="font-serif text-center text-lg text-ink">
-                こちらの記事もおすすめ
+                こちらのブログもおすすめ
               </h3>
               <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
                 {otherPosts.map((op) => (
