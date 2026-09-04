@@ -17,8 +17,8 @@ Write-Host "① 复制源码到非 git 目录: $dst" -ForegroundColor Cyan
 if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
 New-Item -ItemType Directory -Path $dst | Out-Null
 
-# 复制全部内容，但排除 node_modules 与 .next（云端会自行安装/构建）
-robocopy $src $dst /E /XD node_modules .next /NFL /NDL /NJH /NJS /NP | Out-Null
+# 复制全部内容，但排除 node_modules 与 .next（云端会自行安装/构建），排除本地工具
+robocopy $src $dst /E /XD node_modules .next /XF stripe.exe /NFL /NDL /NJH /NJS /NP | Out-Null
 # robocopy 成功的退出码是 0~7，视为正常
 if ($LASTEXITCODE -ge 8) { throw "复制失败 (robocopy exit=$LASTEXITCODE)" }
 $global:LASTEXITCODE = 0
@@ -26,7 +26,7 @@ $global:LASTEXITCODE = 0
 Write-Host "② 从非 git 目录部署到生产环境..." -ForegroundColor Cyan
 Push-Location $dst
 try {
-    npx vercel deploy --prod
+    npx --yes vercel deploy --prod --yes
 } finally {
     Pop-Location
 }
