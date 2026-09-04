@@ -39,12 +39,31 @@ export type PostItem = {
 export function extractImageUrl(media: any): string {
   if (!media) return "/img/1788083506887.png";
   if (typeof media === "string") {
+    if (media.includes("/api/media/file/")) {
+      const match = media.match(/\/api\/media\/file\/(.+)$/);
+      if (match) return `/img/${match[1]}`;
+    }
     if (media.startsWith("http") || media.startsWith("/")) return media;
-    return `/media/${media}`;
+    return `/img/${media}`;
   }
   if (typeof media === "object") {
-    if (media.url) return media.url;
-    if (media.filename) return `/media/${media.filename}`;
+    // 外部ストレージ (Vercel Blob / S3 / Unsplash 等) のURLを優先
+    if (
+      media.url &&
+      !media.url.includes("/api/media/file/") &&
+      (media.url.startsWith("http") || media.url.startsWith("/"))
+    ) {
+      return media.url;
+    }
+    // ローカル公開画像 (/public/img/) を直参照
+    if (media.filename) {
+      return `/img/${media.filename}`;
+    }
+    if (media.url) {
+      const match = String(media.url).match(/\/api\/media\/file\/(.+)$/);
+      if (match) return `/img/${match[1]}`;
+      return media.url;
+    }
   }
   return "/img/1788083506887.png";
 }
