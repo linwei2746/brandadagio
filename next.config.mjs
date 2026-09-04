@@ -1,13 +1,14 @@
+import { withPayload } from "@payloadcms/next/withPayload";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: process.env.NODE_ENV === 'development',
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "placehold.co" },
-      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
   },
 };
 
-export default nextConfig;
+export default withPayload(nextConfig);

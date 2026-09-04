@@ -53,14 +53,14 @@ export default function Header() {
 
         {/* CTA (Icons) */}
         <div className="flex items-center gap-5 md:gap-7 text-gold">
-          <Link href="/mypage" aria-label="My Page" className="hidden md:block">
+          <Link href="/mypage" aria-label="My Page">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-[22px] h-[22px] transition-opacity hover:opacity-70">
               <circle cx="12" cy="12" r="10" />
               <circle cx="12" cy="9.5" r="3.5" />
               <path d="M6.168 18.849A4 4 0 0 1 10 15.5h4a4 4 0 0 1 3.832 3.349" strokeLinecap="round" />
             </svg>
           </Link>
-          <Link href="/cart" aria-label="Cart" className="hidden md:block">
+          <Link href="/cart" aria-label="Cart">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5 transition-opacity hover:opacity-70">
               <path d="M8 8V6a4 4 0 0 1 8 0v2" strokeLinecap="round" />
               <rect x="4" y="8" width="16" height="13" rx="2" />
@@ -72,17 +72,17 @@ export default function Header() {
             className="flex h-9 w-9 flex-col items-center justify-center gap-[5px] lg:hidden"
           >
             <span
-              className={`h-px w-6 transition-transform ${light ? "bg-ivory" : "bg-ink"} ${
+              className={`h-px w-6 transition-transform ${light ? "bg-ivory" : "bg-gold"} ${
                 open ? "translate-y-[6px] rotate-45" : ""
               }`}
             />
             <span
-              className={`h-px w-6 transition-opacity ${light ? "bg-ivory" : "bg-ink"} ${
+              className={`h-px w-6 transition-opacity ${light ? "bg-ivory" : "bg-gold"} ${
                 open ? "opacity-0" : ""
               }`}
             />
             <span
-              className={`h-px w-6 transition-transform ${light ? "bg-ivory" : "bg-ink"} ${
+              className={`h-px w-6 transition-transform ${light ? "bg-ivory" : "bg-gold"} ${
                 open ? "-translate-y-[6px] -rotate-45" : ""
               }`}
             />
@@ -108,11 +108,7 @@ export default function Header() {
               </Link>
             </li>
           ))}
-          <li>
-            <Link href="/sell" className="btn-solid mt-2 w-full">
-              無料査定を申し込む
-            </Link>
-          </li>
+
         </ul>
       </div>
     </header>

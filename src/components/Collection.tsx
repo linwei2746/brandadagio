@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { collection } from "@/lib/data";
+import { getProducts, type ProductItem } from "@/lib/cms";
 import ProductCard from "./ProductCard";
 import Reveal from "./Reveal";
 
-export default function Collection() {
+export default async function Collection({ products }: { products?: ProductItem[] }) {
+  const items = products || (await getProducts({ limit: 8 }));
+
   return (
     <section className="bg-cream py-24 md:py-32">
       <div className="container-luxe">
@@ -16,7 +18,7 @@ export default function Collection() {
         </Reveal>
 
         <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
-          {collection.map((p, i) => (
+          {items.map((p, i) => (
             <Reveal key={p.id} delay={(i % 4) * 80}>
               <ProductCard product={p} />
             </Reveal>

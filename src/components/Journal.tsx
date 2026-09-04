@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { journal } from "@/lib/data";
+import { getPosts, type PostItem } from "@/lib/cms";
 import Reveal from "./Reveal";
 
-export default function Journal() {
+export default async function Journal({ posts }: { posts?: PostItem[] }) {
+  const items = posts || (await getPosts(3));
+
   return (
     <section className="bg-cream py-24 md:py-32">
       <div className="container-luxe">
@@ -18,12 +20,12 @@ export default function Journal() {
         </Reveal>
 
         <div className="mt-14 grid grid-cols-1 gap-10 md:grid-cols-3">
-          {journal.map((post, i) => (
-            <Reveal key={post.title} delay={i * 90}>
-              <Link href="/journal" className="group block">
+          {items.map((post, i) => (
+            <Reveal key={post.id || post.title} delay={i * 90}>
+              <Link href={`/journal/${post.slug || post.id}`} className="group block">
                 <div className="relative aspect-[3/2] overflow-hidden bg-line">
                   <Image
-                    src={post.image}
+                    src={post.coverImage || "/img/1788083506887.png"}
                     alt={post.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -31,7 +33,7 @@ export default function Journal() {
                   />
                 </div>
                 <p className="mt-5 text-[11px] tracking-[0.14em] text-gold">
-                  {post.date.replace(/-/g, ".")}
+                  {post.publishedAt.replace(/-/g, ".")}
                 </p>
                 <h3 className="mt-2 font-serif text-lg leading-snug text-ink transition-colors group-hover:text-gold">
                   {post.title}

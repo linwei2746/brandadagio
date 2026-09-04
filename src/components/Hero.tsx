@@ -11,7 +11,7 @@ export default function Hero() {
         fill
         priority
         sizes="100vw"
-        className="object-cover object-[70%_75%]"
+        className="object-cover object-center"
       />
       {/* 左からのやわらかな白のスクリム（文字の可読性） */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/55 to-transparent" />
