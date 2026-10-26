@@ -89,6 +89,10 @@ if ! command -v caddy >/dev/null; then
   apt-get install -y -qq caddy
 fi
 
+# Caddyfile の log ディレクティブが書き込む先。
+# 無いと起動時に失敗する（caddy validate では検出できない）。
+install -d -o caddy -g caddy -m 755 /var/log/caddy
+
 # ---------- 5. ユーザーとディレクトリ ----------
 log "実行ユーザーとディレクトリを作成"
 id -u "${APP_USER}" >/dev/null 2>&1 || useradd --system --create-home --home-dir "${APP_HOME}" --shell /usr/sbin/nologin "${APP_USER}"

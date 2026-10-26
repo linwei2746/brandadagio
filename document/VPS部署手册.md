@@ -155,8 +155,15 @@ systemctl enable brandadagio
 
 cp /srv/brandadagio/app/deploy/Caddyfile /etc/caddy/Caddyfile
 caddy validate --config /etc/caddy/Caddyfile
-systemctl reload caddy
+systemctl restart caddy
+systemctl status caddy --no-pager
 ```
+
+> `reload` ではなく `restart` を使う。Caddy がまだ起動していない状態で
+> `reload` すると必ず失敗する。
+>
+> `caddy validate` は構文しか見ない。ポートの奪い合いやログ出力先の
+> 書き込み権限といった実行時の問題は `restart` して初めて分かる。
 
 ### 6. 放入种子图片
 
@@ -319,6 +326,26 @@ dig +short brandadagio.com        # 必须返回 160.251.138.108
 ufw status                        # 80/443 必须 ALLOW
 journalctl -u caddy -n 50
 ```
+
+**`systemctl reload caddy` 失败，但 `caddy validate` 说 Valid**
+
+`validate` 只检查语法。先看真正的原因：
+
+```bash
+systemctl status caddy --no-pager -l
+journalctl -xeu caddy.service -n 30 --no-pager
+```
+
+常见两种：
+
+1. **Caddy 还没启动** → `reload` 对未运行的服务必然失败。用 `systemctl restart caddy`。
+2. **日志目录不存在** → Caddyfile 里写了 `output file /var/log/caddy/brandadagio.log`，
+   目录没有或权限不对就起不来：
+   ```bash
+   mkdir -p /var/log/caddy && chown caddy:caddy /var/log/caddy
+   systemctl restart caddy
+   ```
+3. **80/443 被占用** → `ss -tlnp | grep -E ':80 |:443 '` 看是谁占着。
 
 **网站无限重定向 / ERR_TOO_MANY_REDIRECTS**
 Cloudflare 的 SSL 模式是 Flexible。改成 **Full (strict)**。
