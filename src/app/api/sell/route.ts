@@ -16,7 +16,9 @@ export async function POST(req: Request) {
     let condition = "";
     let note = "";
     let type = "buyback";
-    let mediaIds: (number | string)[] = [];
+    // media.id は Postgres の serial なので number。
+    // sell-requests.images も (number | Media)[] を期待する。
+    let mediaIds: number[] = [];
 
     const payload = await getPayload({ config });
 
@@ -65,7 +67,11 @@ export async function POST(req: Request) {
       note = data.note || "";
       type = data.type || "buyback";
       if (Array.isArray(data.images)) {
-        mediaIds = data.images;
+        // JSON 経由では ID が文字列で届くことがあるため数値へ正規化し、
+        // 数値にならないものは捨てる
+        mediaIds = data.images
+          .map((v: unknown) => Number(v))
+          .filter((n: number) => Number.isInteger(n) && n > 0);
       }
     }
 
