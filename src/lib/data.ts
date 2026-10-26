@@ -1,6 +1,6 @@
 // ============================================================
 //  デモ用データ
-//  本番では Supabase から取得します（lib/supabase を参照）。
+//  本番では Payload から取得します（lib/cms.ts を参照）。
 //  画像は Unsplash のプレースホルダーを使用しています。
 // ============================================================
 
@@ -237,5 +237,5 @@ export const journal = [
 // 価格フォーマット（DEAREST 風：¥ 000,000 〜）
 export function formatPrice(price: number, currency: "JPY" | "HKD") {
   const symbol = currency === "JPY" ? "¥" : "HK$";
-  return `${symbol} ${price.toLocaleString("ja-JP")} 〜`;
+  return `${symbol}${price.toLocaleString("ja-JP")}`;
 }
