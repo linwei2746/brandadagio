@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getPayload } from "payload";
 import config from "@payload-config";
 import {
@@ -23,6 +24,7 @@ export type ProductItem = {
   badge?: string;
   status: "draft" | "available" | "reserved" | "sold";
   isFeatured?: boolean;
+  stock?: number;
 };
 
 export type PostItem = {
@@ -36,36 +38,44 @@ export type PostItem = {
   status: "draft" | "published";
 };
 
+const FALLBACK_IMAGE = "/img/1788083506887.png";
+
+/**
+ * media リレーションを <img src> に変換する。
+ *
+ *   1. 外部ストレージ (Vercel Blob / S3 等) … 絶対 URL をそのまま使う
+ *   2. Payload 管理下のファイル            … /api/media/file/<filename>
+ *
+ * 2 は必ず「相対パス」で返す。Payload は media.url に serverURL を付けた
+ * 絶対 URL を返してくるが、それをそのまま next/image に渡すと外部画像扱いになり
+ * remotePatterns の設定が必要になる（＝ドメインを変えるたびに壊れる）。
+ *
+ * 実ファイルの置き場は MEDIA_DIR（本番ではリリースディレクトリの外）。
+ */
 export function extractImageUrl(media: any): string {
-  if (!media) return "/img/1788083506887.png";
+  if (!media) return FALLBACK_IMAGE;
+
+  // 絶対 URL から /api/media/file/... 以降だけを取り出す
+  const toRelative = (u: string) => {
+    const i = u.indexOf("/api/media/file/");
+    return i >= 0 ? u.slice(i) : u;
+  };
+
   if (typeof media === "string") {
-    if (media.includes("/api/media/file/")) {
-      const match = media.match(/\/api\/media\/file\/(.+)$/);
-      if (match) return `/img/${match[1]}`;
-    }
-    if (media.startsWith("http") || media.startsWith("/")) return media;
-    return `/img/${media}`;
+    if (media.startsWith("http")) return toRelative(media);
+    if (media.startsWith("/")) return media;
+    return `/api/media/file/${media}`;
   }
+
   if (typeof media === "object") {
-    // 外部ストレージ (Vercel Blob / S3 / Unsplash 等) のURLを優先
-    if (
-      media.url &&
-      !media.url.includes("/api/media/file/") &&
-      (media.url.startsWith("http") || media.url.startsWith("/"))
-    ) {
-      return media.url;
-    }
-    // ローカル公開画像 (/public/img/) を直参照
-    if (media.filename) {
-      return `/img/${media.filename}`;
-    }
-    if (media.url) {
-      const match = String(media.url).match(/\/api\/media\/file\/(.+)$/);
-      if (match) return `/img/${match[1]}`;
-      return media.url;
-    }
+    const url = typeof media.url === "string" ? media.url : "";
+    // 外部ストレージ（Payload 自身の配信 URL は除く）
+    if (url.startsWith("http") && !url.includes("/api/media/file/")) return url;
+    if (media.filename) return `/api/media/file/${media.filename}`;
+    if (url) return toRelative(url);
   }
-  return "/img/1788083506887.png";
+
+  return FALLBACK_IMAGE;
 }
 
 function normalizeMockProduct(p: LegacyProduct, index = 0): ProductItem {
@@ -85,6 +95,7 @@ function normalizeMockProduct(p: LegacyProduct, index = 0): ProductItem {
     badge: p.badge,
     status: "available",
     isFeatured: true,
+    stock: 1,
   };
 }
 
@@ -97,6 +108,9 @@ function normalizePayloadProduct(doc: any): ProductItem {
     }
   }
   const fallbackImg = images[0] || "/img/1788083506887.png";
+  const stock = typeof doc.stock === "number" ? doc.stock : (doc.status === "sold" ? 0 : 1);
+  const status = stock === 0 ? "sold" : (doc.status || "available");
+
   return {
     id: String(doc.id),
     slug: doc.slug ? String(doc.slug) : String(doc.id),
@@ -110,9 +124,10 @@ function normalizePayloadProduct(doc: any): ProductItem {
     currency: doc.currency || "JPY",
     images: images.length > 0 ? images : [fallbackImg],
     image: fallbackImg,
-    badge: doc.status === "sold" ? "売約済み" : doc.status === "reserved" ? "商談中" : doc.isFeatured ? "おすすめ" : undefined,
-    status: doc.status || "available",
+    badge: status === "sold" ? "売約済み" : status === "reserved" ? "商談中" : doc.isFeatured ? "おすすめ" : undefined,
+    status,
     isFeatured: Boolean(doc.isFeatured),
+    stock,
   };
 }
 
@@ -129,7 +144,7 @@ function normalizePayloadPost(doc: any): PostItem {
   };
 }
 
-export async function getProducts(options?: {
+async function getProductsUncached(options?: {
   category?: string;
   condition?: string;
   location?: string;
@@ -197,7 +212,7 @@ export async function getProducts(options?: {
   return list;
 }
 
-export async function getProductBySlugOrId(slugOrId: string): Promise<ProductItem | null> {
+async function getProductBySlugOrIdUncached(slugOrId: string): Promise<ProductItem | null> {
   try {
     const payload = await getPayload({ config });
     // First try by slug
@@ -232,7 +247,7 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ProductIte
   return found || allMock[0] || null;
 }
 
-export async function getPosts(limit = 10): Promise<PostItem[]> {
+async function getPostsUncached(limit = 10): Promise<PostItem[]> {
   try {
     const payload = await getPayload({ config });
     const { docs } = await payload.find({
@@ -261,7 +276,7 @@ export async function getPosts(limit = 10): Promise<PostItem[]> {
   }));
 }
 
-export async function getPostBySlug(slugOrId: string): Promise<PostItem | null> {
+async function getPostBySlugUncached(slugOrId: string): Promise<PostItem | null> {
   try {
     const payload = await getPayload({ config });
     // 先按 slug 查找
@@ -308,3 +323,37 @@ export async function getOrderById(orderId: string) {
     return null;
   }
 }
+
+
+// ============================================================
+//  データキャッシュ
+//  DB は遠隔（Neon）のため 1 往復 ≈ 270ms。読み取りをキャッシュして
+//  往復を削減する。管理画面で保存すると revalidateTag で即時失効。
+//  （注文 getOrderById は常に最新が必要なためキャッシュしない）
+// ============================================================
+
+export const CACHE_TAGS = { products: "products", posts: "posts" } as const;
+
+export const getProducts = unstable_cache(
+  getProductsUncached,
+  ["cms:getProducts"],
+  { tags: [CACHE_TAGS.products], revalidate: 300 },
+);
+
+export const getProductBySlugOrId = unstable_cache(
+  getProductBySlugOrIdUncached,
+  ["cms:getProductBySlugOrId"],
+  { tags: [CACHE_TAGS.products], revalidate: 300 },
+);
+
+export const getPosts = unstable_cache(
+  getPostsUncached,
+  ["cms:getPosts"],
+  { tags: [CACHE_TAGS.posts], revalidate: 300 },
+);
+
+export const getPostBySlug = unstable_cache(
+  getPostBySlugUncached,
+  ["cms:getPostBySlug"],
+  { tags: [CACHE_TAGS.posts], revalidate: 300 },
+);

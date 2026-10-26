@@ -1,4 +1,13 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
 import type { CollectionConfig } from "payload";
+
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// アップロード先。デプロイのたびに消えないよう、本番ではリリースディレクトリの
+// 外（例: /var/lib/brandadagio/media）を MEDIA_DIR で指定する。
+const staticDir = process.env.MEDIA_DIR || path.resolve(dirname, "../../media");
 
 // 画像・ファイル。アップロード即利用。保存先は payload.config の storage 設定に従う
 // （本番は Vercel Blob / S3・R2、ローカルは disk）。
@@ -12,6 +21,7 @@ export const Media: CollectionConfig = {
     delete: ({ req }) => !!req.user,
   },
   upload: {
+    staticDir,
     // レスポンシブ用の派生サイズ
     imageSizes: [
       { name: "thumb", width: 480, height: 600, position: "centre" },

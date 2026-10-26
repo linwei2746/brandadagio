@@ -39,3 +39,12 @@ next-env.d.ts
 
 # Local tools
 stripe.exe
+
+# Payload のアップロード先（MEDIA_DIR）
+/media
+
+# 個人のアカウント情報（リポジトリに入れない）
+/账号信息.txt
+
+# .env* は無視するが、値の入っていないテンプレートだけは共有する
+!.env.example

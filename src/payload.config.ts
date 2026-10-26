@@ -25,12 +25,19 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     meta: { titleSuffix: "・ brandadagio 管理" },
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
   },
   collections: [Products, Posts, Orders, SellRequests, Media, Users],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || "" },
+    // 開発中はコレクション定義を保存するだけでテーブルへ即反映（push）。
+    // 本番では必ずマイグレーション経由にする（意図しない DROP を防ぐため）。
+    push: process.env.NODE_ENV !== "production",
+    migrationDir: path.resolve(dirname, "migrations"),
   }),
   sharp,
   typescript: {

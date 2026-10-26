@@ -1,0 +1,55 @@
+#  /etc/systemd/system/brandadagio.service
+#
+#  設置:
+#    sudo cp deploy/brandadagio.service /etc/systemd/system/
+#    sudo systemctl daemon-reload
+#    sudo systemctl enable --now brandadagio
+#
+#  ログ: journalctl -u brandadagio -f
+
+[Unit]
+Description=brandadagio (Next.js + Payload CMS)
+Documentation=https://github.com/
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=brandadagio
+Group=brandadagio
+WorkingDirectory=/srv/brandadagio/live
+
+# 秘密情報はここだけ（root:600）。リポジトリには入れない。
+EnvironmentFile=/etc/brandadagio.env
+
+ExecStart=/usr/bin/node server.js
+
+Restart=always
+RestartSec=2
+# 起動直後にクラッシュを繰り返しても諦めない
+StartLimitIntervalSec=0
+
+# 終了時は SIGTERM → 15 秒待って SIGKILL
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=brandadagio
+
+# ---- 権限の絞り込み ----
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+# 書き込みを許すのはアップロード先と Next のキャッシュのみ
+ReadWritePaths=/var/lib/brandadagio/media /srv/brandadagio/live/.next
+
+[Install]
+WantedBy=multi-user.target

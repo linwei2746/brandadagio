@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { revalidateTag } from "next/cache";
 
 // ブログ（記事）。後台で無コード投稿。
 export const Posts: CollectionConfig = {
@@ -9,6 +10,25 @@ export const Posts: CollectionConfig = {
     defaultColumns: ["title", "status", "publishedAt"],
   },
   hooks: {
+    // 管理画面で保存・削除したら一覧/詳細のキャッシュを即時失効
+    afterChange: [
+      () => {
+        try {
+          revalidateTag("posts");
+        } catch {
+          /* リクエスト外からの呼び出しは無視 */
+        }
+      },
+    ],
+    afterDelete: [
+      () => {
+        try {
+          revalidateTag("posts");
+        } catch {
+          /* 同上 */
+        }
+      },
+    ],
     beforeValidate: [
       ({ data }) => {
         if (data) {

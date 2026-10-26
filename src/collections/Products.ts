@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { revalidateTag } from "next/cache";
 
 // 商品（在庫）。後台で無コード管理。
 export const Products: CollectionConfig = {
@@ -6,7 +7,41 @@ export const Products: CollectionConfig = {
   labels: { singular: "商品", plural: "商品" },
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "price", "status", "isFeatured"],
+    defaultColumns: ["images", "title", "price", "stock", "status", "isFeatured"],
+  },
+  hooks: {
+    // 管理画面で保存・削除したら一覧/詳細のキャッシュを即時失効
+    afterChange: [
+      () => {
+        try {
+          revalidateTag("products");
+        } catch {
+          /* リクエスト外からの呼び出しは無視 */
+        }
+      },
+    ],
+    afterDelete: [
+      () => {
+        try {
+          revalidateTag("products");
+        } catch {
+          /* 同上 */
+        }
+      },
+    ],
+    beforeValidate: [
+      ({ data }) => {
+        if (data) {
+          // 在庫数と公開状態（status）の自動連動
+          if (data.stock === 0 && data.status === "available") {
+            data.status = "sold";
+          } else if (data.status === "sold" && (data.stock === undefined || data.stock > 0)) {
+            data.stock = 0;
+          }
+        }
+        return data;
+      },
+    ],
   },
   access: {
     read: () => true,
@@ -55,9 +90,31 @@ export const Products: CollectionConfig = {
           defaultValue: "JPY",
           options: ["JPY", "HKD"],
         },
+        {
+          name: "stock",
+          type: "number",
+          label: "在庫数",
+          defaultValue: 1,
+          min: 0,
+          admin: {
+            step: 1,
+            description: "数量（0で売約済み）",
+          },
+        },
       ],
     },
-    { name: "images", type: "upload", relationTo: "media", hasMany: true, label: "画像" },
+    {
+      name: "images",
+      type: "upload",
+      relationTo: "media",
+      hasMany: true,
+      label: "画像",
+      admin: {
+        components: {
+          Cell: "@/components/admin/ProductThumbnailCell#ProductThumbnailCell",
+        },
+      },
+    },
     {
       name: "status",
       type: "select",

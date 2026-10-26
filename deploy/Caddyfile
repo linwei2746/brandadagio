@@ -1,0 +1,71 @@
+# /etc/caddy/Caddyfile
+#
+# 設置:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# HTTPS 証明書は Caddy が Let's Encrypt から自動取得・自動更新する。
+# 事前に以下の DNS が設定されている必要がある:
+#   brandadagio.com       A  160.251.138.108
+#   www.brandadagio.com   A  160.251.138.108   （または CNAME brandadagio.com）
+
+{
+	servers {
+		# Cloudflare 経由でも実クライアント IP をログに残す。
+		# これが無いと全アクセスが Cloudflare の IP として記録される。
+		# 一覧: https://www.cloudflare.com/ips-v4 と /ips-v6（更新は稀）
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22 2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::/32 2a06:98c0::/29 2c0f:f248::/32
+		client_ip_headers Cf-Connecting-IP X-Forwarded-For
+	}
+}
+
+brandadagio.com {
+
+	encode zstd gzip
+
+	# 管理画面からの画像アップロード用に上限を上げる
+	request_body {
+		max_size 50MB
+	}
+
+	# ---- ビルド成果物は内容ハッシュ付きなので永久キャッシュ可 ----
+	@immutable path /_next/static/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# ---- 静的画像 ----
+	@img path /img/*
+	header @img Cache-Control "public, max-age=2592000"
+
+	# ---- セキュリティヘッダ ----
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy 127.0.0.1:3000 {
+		# デプロイ時の再起動（1〜2 秒）をユーザーに見せないための再試行。
+		# この間リクエストは Caddy 側で待たされ、502 を返さずに済む。
+		lb_try_duration 15s
+		lb_try_interval 250ms
+
+		# Payload 管理画面の大きなアップロードに備える
+		flush_interval -1
+	}
+
+	log {
+		output file /var/log/caddy/brandadagio.log {
+			roll_size 20mb
+			roll_keep 10
+		}
+		format json
+	}
+}
+
+# www は正規ドメインへ 301 リダイレクト（SEO 上、本番 URL は 1 つに統一する）
+www.brandadagio.com {
+	redir https://brandadagio.com{uri} permanent
+}
