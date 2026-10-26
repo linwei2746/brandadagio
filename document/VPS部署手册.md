@@ -35,13 +35,29 @@ HTTPS 证书由 Caddy 自动申请续期，不需要手动管。
 
 ## 第一次部署
 
-### 0. 先把代码推上去（在你的 Windows 上）
+### 0. 确认代码已推上 GitHub（在你的 Windows 上）
 
-本次会话的改动还没提交。`deploy.sh` 是从 GitHub 拉代码的，不推上去服务器拿不到。
+`deploy.sh` 是从 GitHub 拉代码的，本地改动没推上去的话服务器拿不到。
+
+先看状态：
 
 ```bash
-git add -A && git commit -m "feat: VPS 部署配置" && git push origin main
+git status -sb
 ```
+
+显示 `## main...origin/main` 且下面没有文件列表，就说明已经同步，**跳到第 1 步**。
+
+如果有未提交的改动，**注意 Windows PowerShell 5.1 不支持 `&&`**，要分三行跑：
+
+```bash
+git add -A
+git commit -m "你的提交说明"
+git push origin main
+```
+
+> PowerShell 里想一行连跑，用 `;` 加判断：
+> `git add -A; if ($?) { git commit -m "..." }; if ($?) { git push origin main }`
+> 直接写 `A && B` 会报 `The token '&&' is not a valid statement separator`。
 
 ### 1. DNS（用 Cloudflare 托管）
 
