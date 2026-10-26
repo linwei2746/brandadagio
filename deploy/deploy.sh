@@ -28,6 +28,15 @@ log() { printf "\n\033[1;36m==> %s\033[0m\n" "$*"; }
 # shellcheck disable=SC1090
 set -a; source "$ENV_FILE"; set +a
 
+# ---------- 0. 所有者の確認 ----------
+# root で git clone するとリポジトリが root 所有になり、
+# アプリユーザーで動かす git / npm / build がすべて失敗する
+# （git は "detected dubious ownership" で止まる）。
+if [[ "$(stat -c %U "$APP_DIR/.git")" != "$APP_USER" ]]; then
+  log "リポジトリの所有者を ${APP_USER} に修正"
+  chown -R "${APP_USER}:${APP_USER}" "$APP_DIR"
+fi
+
 # ---------- 1. 最新コードを取得 ----------
 log "コードを取得（${BRANCH}）"
 cd "$APP_DIR"

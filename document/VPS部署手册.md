@@ -115,6 +115,17 @@ apt-get update && apt-get install -y git
 git clone https://github.com/linwei2746/brandadagio /srv/brandadagio/app
 ```
 
+クローン後、**必ず所有者をアプリユーザーに変える**（この時点ではまだ
+`brandadagio` ユーザーが存在しないので、第 3 步のあとに実行する）:
+
+```bash
+chown -R brandadagio:brandadagio /srv/brandadagio/app
+```
+
+> root 所有のままだと git が `detected dubious ownership` で止まり、
+> その先の `npm ci` やビルドも書き込めずに失敗する。
+> （`deploy.sh` は起動時に所有者を自動で直すので、通常は意識不要）
+
 > 仓库是私有的话，先在服务器上生成部署密钥：
 > `ssh-keygen -t ed25519 -C "vps" -f ~/.ssh/id_ed25519 -N ""` → 把 `~/.ssh/id_ed25519.pub` 的内容加到
 > GitHub 仓库 Settings → Deploy keys，然后用 SSH 地址 clone：
@@ -350,6 +361,17 @@ journalctl -xeu caddy.service -n 30 --no-pager
    ```
    报 `no such file or directory` 时也是同一条命令解决。
 3. **80/443 被占用** → `ss -tlnp | grep -E ':80 |:443 '` 看是谁占着。
+
+**`deploy.sh` が `detected dubious ownership` で止まる**
+
+root で clone したためリポジトリが root 所有になっている。
+
+```bash
+chown -R brandadagio:brandadagio /srv/brandadagio/app
+```
+
+> 提示される `git config --global --add safe.directory` は使わないこと。
+> git の警告が消えるだけで、続く `npm ci` やビルドが書き込めない問題は残る。
 
 **网站无限重定向 / ERR_TOO_MANY_REDIRECTS**
 Cloudflare 的 SSL 模式是 Flexible。改成 **Full (strict)**。
