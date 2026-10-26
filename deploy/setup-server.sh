@@ -90,8 +90,13 @@ if ! command -v caddy >/dev/null; then
 fi
 
 # Caddyfile の log ディレクティブが書き込む先。
-# 無いと起動時に失敗する（caddy validate では検出できない）。
-install -d -o caddy -g caddy -m 755 /var/log/caddy
+# Caddy の deb パッケージがこのディレクトリを root 所有で作ることがあり、
+# その場合サービス（caddy ユーザー）が書き込めず起動に失敗する。
+# ディレクトリが既にあっても所有者を直せるよう mkdir と chown を分けている。
+# なお caddy validate はログ出力先を開かないため、この問題は検出できない。
+mkdir -p /var/log/caddy
+chown -R caddy:caddy /var/log/caddy
+chmod 755 /var/log/caddy
 
 # ---------- 5. ユーザーとディレクトリ ----------
 log "実行ユーザーとディレクトリを作成"

@@ -339,12 +339,16 @@ journalctl -xeu caddy.service -n 30 --no-pager
 常见两种：
 
 1. **Caddy 还没启动** → `reload` 对未运行的服务必然失败。用 `systemctl restart caddy`。
-2. **日志目录不存在** → Caddyfile 里写了 `output file /var/log/caddy/brandadagio.log`，
-   目录没有或权限不对就起不来：
+2. **日志目录权限不对** → journal 里出现
+   `open /var/log/caddy/brandadagio.log: permission denied`。
+   Caddy 的 deb 包可能把 `/var/log/caddy` 建成 root 所有，而服务以 `caddy`
+   用户运行，写不进去：
    ```bash
-   mkdir -p /var/log/caddy && chown caddy:caddy /var/log/caddy
+   mkdir -p /var/log/caddy
+   chown -R caddy:caddy /var/log/caddy
    systemctl restart caddy
    ```
+   报 `no such file or directory` 时也是同一条命令解决。
 3. **80/443 被占用** → `ss -tlnp | grep -E ':80 |:443 '` 看是谁占着。
 
 **网站无限重定向 / ERR_TOO_MANY_REDIRECTS**
