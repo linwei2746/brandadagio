@@ -101,6 +101,12 @@ chmod 755 /var/log/caddy
 # ---------- 5. ユーザーとディレクトリ ----------
 log "実行ユーザーとディレクトリを作成"
 id -u "${APP_USER}" >/dev/null 2>&1 || useradd --system --create-home --home-dir "${APP_HOME}" --shell /usr/sbin/nologin "${APP_USER}"
+
+# ホームディレクトリ自体の所有者を必ず直す。
+# 手順では先に git clone するため /srv/brandadagio が root 所有で作られており、
+# useradd --create-home は既存ディレクトリの所有者を変更しない。
+# このままだと npm がキャッシュ (~/.npm) を作れず EACCES で失敗する。
+chown "${APP_USER}:${APP_USER}" "${APP_HOME}"
 install -d -o "${APP_USER}" -g "${APP_USER}" "${APP_HOME}/app" "${APP_HOME}/live"
 install -d -o "${APP_USER}" -g "${APP_USER}" "${DATA_DIR}/media" "${DATA_DIR}/backups"
 

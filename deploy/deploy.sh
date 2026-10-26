@@ -14,6 +14,7 @@
 set -euo pipefail
 
 APP_USER="brandadagio"
+APP_HOME="/srv/brandadagio"
 APP_DIR="/srv/brandadagio/app"
 LIVE_DIR="/srv/brandadagio/live"
 ENV_FILE="/etc/brandadagio.env"
@@ -29,9 +30,14 @@ log() { printf "\n\033[1;36m==> %s\033[0m\n" "$*"; }
 set -a; source "$ENV_FILE"; set +a
 
 # ---------- 0. 所有者の確認 ----------
-# root で git clone するとリポジトリが root 所有になり、
-# アプリユーザーで動かす git / npm / build がすべて失敗する
-# （git は "detected dubious ownership" で止まる）。
+# root で git clone するとリポジトリもホームディレクトリも root 所有になり、
+# アプリユーザーで動かす git / npm / build がすべて失敗する。
+#   - git  : "detected dubious ownership" で停止
+#   - npm  : キャッシュ ~/.npm を作れず EACCES で停止
+if [[ "$(stat -c %U "$APP_HOME")" != "$APP_USER" ]]; then
+  log "ホームディレクトリの所有者を ${APP_USER} に修正"
+  chown "${APP_USER}:${APP_USER}" "$APP_HOME"
+fi
 if [[ "$(stat -c %U "$APP_DIR/.git")" != "$APP_USER" ]]; then
   log "リポジトリの所有者を ${APP_USER} に修正"
   chown -R "${APP_USER}:${APP_USER}" "$APP_DIR"
@@ -42,7 +48,7 @@ log "コードを取得（${BRANCH}）"
 cd "$APP_DIR"
 sudo -u "$APP_USER" git fetch --prune origin
 sudo -u "$APP_USER" git reset --hard "origin/${BRANCH}"
-echo "HEAD: $(git log -1 --oneline)"
+echo "HEAD: $(sudo -u "$APP_USER" git log -1 --oneline)"
 
 # ---------- 2. 依存関係 ----------
 log "依存パッケージをインストール（npm ci）"

@@ -362,16 +362,33 @@ journalctl -xeu caddy.service -n 30 --no-pager
    报 `no such file or directory` 时也是同一条命令解决。
 3. **80/443 被占用** → `ss -tlnp | grep -E ':80 |:443 '` 看是谁占着。
 
-**`deploy.sh` が `detected dubious ownership` で止まる**
+**`deploy.sh` が所有者関連で止まる**
 
-root で clone したためリポジトリが root 所有になっている。
+症状は 2 通りあるが原因は同じ。手順どおり先に `git clone` すると
+`/srv/brandadagio` とその中身が root 所有で作られ、
+`useradd --create-home` は既存ディレクトリの所有者を変えないため残ってしまう。
+
+| 症状 | どこで出るか |
+|---|---|
+| `fatal: detected dubious ownership in repository` | git |
+| `npm error code EACCES` / `path /srv/brandadagio/.npm` | npm（キャッシュが作れない） |
 
 ```bash
+chown brandadagio:brandadagio /srv/brandadagio
 chown -R brandadagio:brandadagio /srv/brandadagio/app
 ```
 
-> 提示される `git config --global --add safe.directory` は使わないこと。
-> git の警告が消えるだけで、続く `npm ci` やビルドが書き込めない問題は残る。
+`npm ci` が途中で落ちた後は `node_modules` が半端な状態（`ENOTEMPTY` や
+`TAR_ENTRY_ERROR` が大量に出る）になっているので、消してからやり直す:
+
+```bash
+rm -rf /srv/brandadagio/.npm /srv/brandadagio/app/node_modules
+bash /srv/brandadagio/app/deploy/deploy.sh
+```
+
+> git が提示する `git config --global --add safe.directory` は使わないこと。
+> git の警告が消えるだけで、npm とビルドが書き込めない問題は残る。
+> （現在の `deploy.sh` は起動時に両方の所有者を自動で直す）
 
 **网站无限重定向 / ERR_TOO_MANY_REDIRECTS**
 Cloudflare 的 SSL 模式是 Flexible。改成 **Full (strict)**。
